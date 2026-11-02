@@ -1,0 +1,10 @@
+name: nsdedalus
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - dedalus=3.0.5
+  - numpy
+  - scipy
+  - mpi4py
+  - h5py
