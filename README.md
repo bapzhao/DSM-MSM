@@ -81,8 +81,8 @@ These checks do not establish full reproduction of every manuscript trajectory.
 
 This software accompanies the manuscript by Yicong Zhao, Chensheng Luo,
 Jian Fang, Liang Shao and Le Fang, currently titled
-*Using aliasing error as numerical dissipation in implicit large-eddy simulation
-of the one-dimensional Burgers equation*. The manuscript is under revision;
+*Using aliasing error as numerical dissipation in Fourier pseudospectral
+simulations*. The manuscript is under revision;
 publication details and an archive DOI will be added when available.
 
 ## Availability and license
