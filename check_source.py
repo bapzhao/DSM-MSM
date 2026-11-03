@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / "burgers1d"))
+sys.path.insert(0, str(ROOT / "dsm"))
 import solver
 import control
 import benchmark
@@ -68,7 +68,7 @@ class SourceChecks(unittest.TestCase):
         np.testing.assert_allclose(actual,expected,atol=1e-16,rtol=1e-15)
 
     def test_msm_sampling_matrix(self):
-        source = (ROOT/"ns2d/run_ns.py").read_text()
+        source = (ROOT/"msm/run_ns.py").read_text()
         tree = ast.parse(source)
         nodes = [n for n in tree.body if isinstance(n,ast.FunctionDef)
                  and n.name in ("formula32_basis","formula32_epsilon","solve_alphaxy_from_formula32")]

@@ -2,12 +2,12 @@
 
 ## One-dimensional implementation
 
-The update functions in `burgers1d/solver.py` are extracted verbatim from
+The update functions in `dsm/solver.py` are extracted verbatim from
 `burgers/lcs_burgers/BurgersSolver.py`. The first-order split update is retained:
 convection, then molecular viscosity. The Smagorinsky reference includes its
 original explicit SGS update between these two operations. No forcing is used.
 
-The DSM functions in `burgers1d/control.py` are extracted verbatim from
+The DSM functions in `dsm/control.py` are extracted verbatim from
 `diagnostics/check_1d_inverse_shift_feasibility.py`, which uses the same normalized
 Fourier coefficients and phase-control convention as the existing calculations.
 Their hashes are listed in PROVENANCE.json and checked by `check_source.py`.
@@ -43,7 +43,7 @@ kernels, random field generator and sampling procedure are preserved verbatim.
 
 ## Two-dimensional implementation
 
-`ns2d/run_ns.py` is adapted from
+`msm/run_ns.py` is adapted from
 `dedalus-master/NS_aliasing/essai_2D_aliasing/2D_period_energy_aliasing_zero_DNS_alphax_equal_y.py`.
 The existing eight-sample basis, full-rank reconstruction, diagonal root search,
 field translation, RK222 update and inverse translation are preserved. The

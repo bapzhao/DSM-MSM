@@ -17,11 +17,11 @@ license has been assigned. See NOTICE.md for the source and reuse notice.
 
 | File | Purpose |
 | --- | --- |
-| `burgers1d/solver.py` | Original convection/viscosity and Smagorinsky update functions |
-| `burgers1d/control.py` | Original DSM power evaluation and phase selection functions |
-| `burgers1d/run_burgers.py` | Portable entry for the one-dimensional cases |
-| `burgers1d/benchmark.py` | Original four-method timing calculation, without plotting |
-| `ns2d/run_ns.py` | Dedalus MSM calculation and the reference/raw options |
+| `dsm/solver.py` | Original convection/viscosity and Smagorinsky update functions |
+| `dsm/control.py` | Original DSM power evaluation and phase selection functions |
+| `dsm/run_burgers.py` | Portable entry for the one-dimensional cases |
+| `dsm/benchmark.py` | Original four-method timing calculation, without plotting |
+| `msm/run_ns.py` | Dedalus MSM calculation and the reference/raw options |
 | `check_source.py` | Small source and numerical-identity checks; no output files |
 | `PROVENANCE.json` | Original source paths and SHA256 hashes |
 | `IMPLEMENTATION.md` | Conventions, packaging changes and implementation boundaries |
@@ -71,21 +71,21 @@ From the package root:
 
 ```bash
 python check_source.py
-python burgers1d/run_burgers.py --case dns-reference --dry-run
-python ns2d/run_ns.py --method msm --dry-run
+python dsm/run_burgers.py --case dns-reference --dry-run
+python msm/run_ns.py --method msm --dry-run
 ```
 
 With Dedalus installed, initialize a small field and check reconstruction at
 independent shifts, without advancing time or writing snapshots:
 
 ```bash
-python ns2d/run_ns.py --method msm --kmax 16 --check-only
+python msm/run_ns.py --method msm --kmax 16 --check-only
 ```
 
 The optional MPI version is:
 
 ```bash
-mpiexec -n 2 python ns2d/run_ns.py --method msm --kmax 16 --check-only
+mpiexec -n 2 python msm/run_ns.py --method msm --kmax 16 --check-only
 ```
 
 These checks are not a repetition of the manuscript's full numerical study.
@@ -99,7 +99,7 @@ are executed; no such results are included in this package.
 ### 1. Generate the DNS reference, restart and target history
 
 ```bash
-python burgers1d/run_burgers.py --case dns-reference --output outputs/1d/reference
+python dsm/run_burgers.py --case dns-reference --output outputs/1d/reference
 ```
 
 Defaults: cutoff 512, padded physical grid 1536, viscosity 0.005, time step
@@ -114,8 +114,8 @@ continuations, not files that must be obtained from the authors.
 ### 2. Run the two DSM Smagorinsky-target cases
 
 ```bash
-python burgers1d/run_burgers.py --case dsm-smag --cs 0.20 --restart outputs/1d/reference/state_t0.300000.npz --output outputs/1d/dsm_cs020
-python burgers1d/run_burgers.py --case dsm-smag --cs 0.27 --restart outputs/1d/reference/state_t0.300000.npz --output outputs/1d/dsm_cs027
+python dsm/run_burgers.py --case dsm-smag --cs 0.20 --restart outputs/1d/reference/state_t0.300000.npz --output outputs/1d/dsm_cs020
+python dsm/run_burgers.py --case dsm-smag --cs 0.27 --restart outputs/1d/reference/state_t0.300000.npz --output outputs/1d/dsm_cs027
 ```
 
 Defaults: cutoff 32, physical grid 64, viscosity 0.005, time step 0.0002,
@@ -125,7 +125,7 @@ case; this program does not fit or optimize it.
 ### 3. Run the filtered-DNS-target DSM case
 
 ```bash
-python burgers1d/run_burgers.py --case dsm-filtered --restart outputs/1d/reference/state_t0.300000.npz --target outputs/1d/reference/sgs_target.csv --output outputs/1d/dsm_filtered
+python dsm/run_burgers.py --case dsm-filtered --restart outputs/1d/reference/state_t0.300000.npz --target outputs/1d/reference/sgs_target.csv --output outputs/1d/dsm_filtered
 ```
 
 The target is the SGS contribution only, with the reference molecular-viscosity
@@ -134,8 +134,8 @@ dissipation subtracted. No extra total-energy correction is applied.
 ### 4. Run the comparison calculations
 
 ```bash
-python burgers1d/run_burgers.py --case smag --cs 0.20 --restart outputs/1d/reference/state_t0.300000.npz --output outputs/1d/smag_cs020
-python burgers1d/run_burgers.py --case coarse --restart outputs/1d/reference/state_t0.300000.npz --output outputs/1d/coarse
+python dsm/run_burgers.py --case smag --cs 0.20 --restart outputs/1d/reference/state_t0.300000.npz --output outputs/1d/smag_cs020
+python dsm/run_burgers.py --case coarse --restart outputs/1d/reference/state_t0.300000.npz --output outputs/1d/coarse
 ```
 
 These use a padded physical grid of 96 while retaining |k|<32.
@@ -143,9 +143,9 @@ These use a padded physical grid of 96 while retaining |k|<32.
 ### 5. Run the zero-target comparison
 
 ```bash
-python burgers1d/run_burgers.py --case zero-dsm --output outputs/1d/zero_dsm
-python burgers1d/run_burgers.py --case zero-reference --output outputs/1d/zero_reference
-python burgers1d/run_burgers.py --case zero-raw --output outputs/1d/zero_raw
+python dsm/run_burgers.py --case zero-dsm --output outputs/1d/zero_dsm
+python dsm/run_burgers.py --case zero-reference --output outputs/1d/zero_reference
+python dsm/run_burgers.py --case zero-raw --output outputs/1d/zero_raw
 ```
 
 Defaults: cutoff 512, viscosity 0.001, time step 0.0002, and t=0 to 0.8.
@@ -156,7 +156,7 @@ it is not silently stabilized.
 ### 6. Run the original timing comparison
 
 ```bash
-python burgers1d/benchmark.py --output outputs/1d/timing.csv
+python dsm/benchmark.py --output outputs/1d/timing.csv
 ```
 
 Defaults: M=32,48,64,96,128,192,256,384,512; at most 40 timing samples per
@@ -174,15 +174,15 @@ The following are the existing zero-target MSM and comparison configurations.
 They do not introduce two-dimensional nonzero-target LES.
 
 ```bash
-python ns2d/run_ns.py --method msm --output outputs/2d/msm
-python ns2d/run_ns.py --method reference --output outputs/2d/reference
-python ns2d/run_ns.py --method raw --output outputs/2d/raw
+python msm/run_ns.py --method msm --output outputs/2d/msm
+python msm/run_ns.py --method reference --output outputs/2d/reference
+python msm/run_ns.py --method raw --output outputs/2d/raw
 ```
 
 For MPI, prepend the launcher, for example:
 
 ```bash
-mpiexec -n 4 python ns2d/run_ns.py --method msm --output outputs/2d/msm_mpi4
+mpiexec -n 4 python msm/run_ns.py --method msm --output outputs/2d/msm_mpi4
 ```
 
 Defaults: domain [0,2*pi]^2, Kmax=128, coefficient grids 256 by 256,
@@ -202,9 +202,9 @@ directory only when a calculation is run.
 ## Options and output conventions
 
 ```bash
-python burgers1d/run_burgers.py --help
-python burgers1d/benchmark.py --help
-python ns2d/run_ns.py --help
+python dsm/run_burgers.py --help
+python dsm/benchmark.py --help
+python msm/run_ns.py --help
 ```
 
 One-dimensional histories use K=<u^2/2>. Positive epsilon means energy removal.

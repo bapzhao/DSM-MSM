@@ -16,7 +16,7 @@ export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
 export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
 export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
 if [ "$processes" -eq 1 ]; then
-    "$python_bin" "$source_root/ns2d/run_ns.py" --method msm --output "$1"
+    "$python_bin" "$source_root/msm/run_ns.py" --method msm --output "$1"
 else
-    mpiexec -n "$processes" "$python_bin" "$source_root/ns2d/run_ns.py" --method msm --output "$1"
+    mpiexec -n "$processes" "$python_bin" "$source_root/msm/run_ns.py" --method msm --output "$1"
 fi

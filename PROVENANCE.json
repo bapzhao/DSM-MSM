@@ -2,7 +2,7 @@
   "description": "Calculation-only source package. Original source hashes and extracted function hashes; no simulation results included.",
   "files": [
     {
-      "file": "burgers1d/solver.py",
+      "file": "dsm/solver.py",
       "source": "burgers/lcs_burgers/BurgersSolver.py",
       "source_sha256": "a0b385b3feb52ca099d8c83aeba2aa59524acc11e3b2df13eee63f597ef9744f",
       "functions": [
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "file": "burgers1d/control.py",
+      "file": "dsm/control.py",
       "source": "burgers/lcs_burgers/diagnostics/check_1d_inverse_shift_feasibility.py",
       "source_sha256": "24f7a5d936ade9797ed4b68d5c084905a1bc3cd22a6b15edf25730d2a90e26cf",
       "functions": [
@@ -68,7 +68,7 @@
       ]
     },
     {
-      "file": "burgers1d/benchmark.py",
+      "file": "dsm/benchmark.py",
       "source": "burgers/lcs_burgers/post_burger/efficiency_benchmark/benchmark_aliasing_efficiency.py",
       "source_sha256": "9f9e274fa0ee37f8e3ecd64e6a7342144ce6e6195a1a09c4aec6c3d36c541efd",
       "functions": [
@@ -167,7 +167,7 @@
       ]
     },
     {
-      "file": "ns2d/run_ns.py",
+      "file": "msm/run_ns.py",
       "source": "dedalus-master/NS_aliasing/essai_2D_aliasing/2D_period_energy_aliasing_zero_DNS_alphax_equal_y.py",
       "source_sha256": "c79d872d58159d766547371fe95e911fb1d241f9da042f3ca1d3444337a3aea4",
       "adaptation": "Command-line configuration, output paths and check-only entry; numerical functions and main update preserved."

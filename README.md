@@ -23,7 +23,7 @@ For the one-dimensional calculations:
 conda env create -f environment-1d.yml
 conda activate 1dburgers
 python check_source.py
-python burgers1d/run_burgers.py --case zero-dsm --cutoff 32 --stop 0.002 --output outputs/1d/example
+python dsm/run_burgers.py --case zero-dsm --cutoff 32 --stop 0.002 --output outputs/1d/example
 ```
 
 For the two-dimensional calculations:
@@ -33,7 +33,7 @@ conda env create -f environment-2d.yml
 conda activate nsdedalus
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
-python ns2d/run_ns.py --method msm --kmax 16 --check-only
+python msm/run_ns.py --method msm --kmax 16 --check-only
 ```
 
 The small example and initialization check are intended to check installation.
@@ -44,8 +44,8 @@ The manuscript configurations and execution order are documented in
 
 | Directory or file | Contents |
 | --- | --- |
-| [burgers1d/](burgers1d/) | Burgers update, DSM control, calculation entry and timing comparison |
-| [ns2d/](ns2d/) | Dedalus MSM, dealiased reference and uncontrolled calculation |
+| [dsm/](dsm/) | Burgers update, DSM control, calculation entry and timing comparison |
+| [msm/](msm/) | Dedalus MSM, dealiased reference and uncontrolled calculation |
 | [examples/1d/](examples/1d/) | Sequential reference and LES launch script |
 | [examples/2d/](examples/2d/) | Serial or MPI launch script |
 | [docs/USAGE.md](docs/USAGE.md) | Installation, parameters, commands and output conventions |
@@ -62,8 +62,8 @@ directories are not overwritten.
 
 ```bash
 python check_source.py
-python burgers1d/run_burgers.py --case dns-reference --dry-run
-python ns2d/run_ns.py --method msm --dry-run
+python dsm/run_burgers.py --case dns-reference --dry-run
+python msm/run_ns.py --method msm --dry-run
 ```
 
 The checks cover the unchanged source functions, energy normalization, direct

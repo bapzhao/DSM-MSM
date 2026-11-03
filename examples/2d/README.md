@@ -6,7 +6,7 @@ Initialize a small field and check the eight-sample reconstruction without
 advancing time or writing results:
 
 ```bash
-python ns2d/run_ns.py --method msm --kmax 16 --check-only
+python msm/run_ns.py --method msm --kmax 16 --check-only
 ```
 
 Run the manuscript MSM configuration in serial:

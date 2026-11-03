@@ -5,7 +5,7 @@ Activate the `1dburgers` environment and run commands from the repository root.
 A small installation check is:
 
 ```bash
-python burgers1d/run_burgers.py --case zero-dsm --cutoff 32 --stop 0.002 --output outputs/1d/example
+python dsm/run_burgers.py --case zero-dsm --cutoff 32 --stop 0.002 --output outputs/1d/example
 ```
 
 To execute the manuscript LES configurations in dependency order:

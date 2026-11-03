@@ -23,8 +23,8 @@ jobs:
         run: python check_source.py
       - name: Check calculation configuration entries
         run: |
-          python burgers1d/run_burgers.py --case dns-reference --dry-run
-          python ns2d/run_ns.py --method msm --dry-run
+          python dsm/run_burgers.py --case dns-reference --dry-run
+          python msm/run_ns.py --method msm --dry-run
       - name: Check example launch scripts
         run: |
           bash -n examples/1d/run_les.sh
