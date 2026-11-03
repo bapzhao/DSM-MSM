@@ -10,7 +10,7 @@ distributed MSM cases use a zero target.
 
 ## Get started
 
-Clone the private repository using a GitHub account with access:
+Clone the repository:
 
 ```bash
 git clone https://github.com/bapzhao/DSM-MSM.git
@@ -87,13 +87,7 @@ publication details and an archive DOI will be added when available.
 
 ## Availability and license
 
-The private source repository for the CPC revision is
+The public source repository for the CPC revision is
 [bapzhao/DSM-MSM](https://github.com/bapzhao/DSM-MSM).
-A distribution license and a public archived version have not yet been assigned.
+A distribution license and an archive DOI have not yet been assigned.
 See [NOTICE.md](NOTICE.md). External dependencies retain their own licenses.
-
-The repository organization draws on
-[Xcompact3d](https://github.com/Xcompact3d/Incompact3d) and
-[NNPred](https://github.com/Weishuo93/NN_Pred): calculation source,
-usage documentation, examples and checks are provided separately.
-No source code from those projects is included.
