@@ -1,4 +1,4 @@
-# DSM-MSM
+# DSM-MSM_YicongZHAO
 
 Calculation code for the Double-Shifting Method (DSM, one-dimensional Burgers)
 and Multiple-Shifting Method (MSM, two-dimensional incompressible Navier--Stokes).
