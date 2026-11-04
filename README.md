@@ -31,13 +31,12 @@ python dsm/run_burgers.py --case smag --cs 0.20 --restart outputs/reference/stat
 python dsm/run_burgers.py --case coarse --restart outputs/reference/state_t0.300000.npz --output outputs/coarse
 ```
 
-Zero-target comparison and timing calculation:
+Zero-target comparison:
 
 ```bash
 python dsm/run_burgers.py --case zero-dsm --output outputs/zero_dsm
 python dsm/run_burgers.py --case zero-reference --output outputs/zero_reference
 python dsm/run_burgers.py --case zero-raw --output outputs/zero_raw
-python dsm/benchmark.py --output outputs/timing.csv
 ```
 
 ## MSM
