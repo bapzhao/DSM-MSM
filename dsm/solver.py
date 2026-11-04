@@ -1,4 +1,4 @@
-"""Burgers update kernels extracted from the original calculation code."""
+"""Fourier pseudospectral time-stepping kernels for the Burgers equation."""
 import numpy as np
 from numpy.fft import fft, ifft
 from numpy import cos, sin
@@ -37,7 +37,6 @@ def advance_step(uk,spe_k,NU,dt,dealiasing_mask=None,forcek=None):
 
     # compute convection term
     u_temp=ifft(uk).real*np.size(uk)
-    # print(ifft(uk).imag)
     u2_temp=u_temp*u_temp
     uk2_temp= fft(u2_temp)/np.size(uk)
     if dealiasing_mask is not None:
@@ -46,21 +45,9 @@ def advance_step(uk,spe_k,NU,dt,dealiasing_mask=None,forcek=None):
         uk2_temp = dealiasing(uk2_temp)
     uk = uk - 0.5*1j*spe_k*uk2_temp*dt
     uk = uk - NU*(spe_k**2)*uk*dt
-    # dudx = ifft(1j * spe_k * uk).real * np.size(uk)
-    # u = ifft(uk).real * np.size(uk)
-    # ududx = u * dudx
-    # uk2_temp = fft(ududx) / np.size(uk)
-    # if dealiasing_mask is not None:
-    #     uk2_temp = dealiasing(uk2_temp,dealiasing_mask)
-    # else:
-    #     uk2_temp = dealiasing(uk2_temp)
-    # uk = uk - uk2_temp*dt
-    #time advance : Euler first order
-
-    # print(f"energy lost after convection: {energy-energybis:2e}, Viscous lost: {energybis-energybisbis:2e}")
+    # First-order explicit convection and viscosity substeps.
     if(forcek is not None):
         dissp = energy - np.sum((np.abs(uk)**2))
-        # seed(tm.time_ns() % 1000000)
         ksi = uniform(-PI/2, PI/2)
         factor = dissp / (2 * (np.abs(uk[forcek])**2))
         factor = - cos(ksi) + np.sqrt(cos(ksi)**2 + factor)
@@ -78,16 +65,17 @@ def advance_step_les_smag_non_average(uk, spe_k, NU, dt,
                          cap_nu_sgs_average=None,
                          enforce_filter=True):
     """
-    1D Burgers LES (Smagorinsky) based on your original Euler-splitting step.
+    Advance the 1D Burgers LES equation with explicit split substeps.
 
     LES equation (filtered):
         d ubar/dt + d/dx(ubar^2/2) = NU d2 ubar/dx2 + d/dx( nu_sgs * d ubar/dx )
         nu_sgs = (Cs*Delta)^2 * |d ubar/dx|
 
     Notes:
-    - Normalization consistent with your code:
+    - Fourier normalization:
         u = ifft(uk).real * N ;  uk = fft(u)/N
-    - All nonlinear products are done in physical space and dealiased in spectral space.
+    - Nonlinear products are evaluated in physical space; the supplied spectral
+      mask is applied to their Fourier coefficients.
     """
 
     N = np.size(uk)
@@ -125,13 +113,7 @@ def advance_step_les_smag_non_average(uk, spe_k, NU, dt,
         # eddy viscosity
         nu_sgs = (Cs * Delta)**2 * np.abs(dudx)
 
-        # # optional cap to avoid too stiff explicit diffusion
-        # if cap_nu_sgs_average is not None:
-        #     nu_sgs_average = np.minimum(nu_sgs_average, cap_nu_sgs_average)
-
-        # tau = nu_sgs_average * dudx
         tau = nu_sgs * dudx
-        # eps_sgs = nu_sgs_average * np.mean(dudx**2)
         tau_k = fft(tau) / N
 
         # dealias the SGS tau term (nonlinear)
@@ -155,11 +137,10 @@ def advance_step_les_smag_non_average(uk, spe_k, NU, dt,
         uk[dealiasing_mask] = 0.0
 
     # =========================
-    # 4) Your forcing (unchanged)
+    # 4) Optional forcing; disabled in the freely decaying cases.
     # =========================
     if(forcek is not None):
         energy_before = np.sum((np.abs(uk)**2))
-        # 这里你原逻辑是用 dissip 来调幅；我不改
         dissp = energy_before - np.sum((np.abs(uk)**2))
         ksi = uniform(-PI/2, PI/2)
         factor = dissp / (2 * (np.abs(uk[forcek])**2))
@@ -174,7 +155,5 @@ def dealiasing(uk,dealiasing_mask=None):
     if dealiasing_mask is not None:
         uk[dealiasing_mask]=0
     else:
-        raise RuntimeError("请提供 dealiasing_mask 进行去混叠。")
-        # nb_X = np.size(uk)/2
-        # uk[int(1*nb_X/3):int(2*nb_X/3)] = 0
+        raise RuntimeError("A dealiasing_mask must be provided.")
     return uk

@@ -1,11 +1,11 @@
-"""DSM power evaluation and phase selection, preserving the original functions."""
+"""Evaluate net aliasing power and select the DSM translation phase."""
 from __future__ import annotations
 import numpy as np
 DOMAIN_LENGTH = 2.0 * np.pi
 
 
 def code_energy(state: np.ndarray) -> float:
-    """Energy normalization used by the existing output files."""
+    """Return the sum of squared Fourier amplitudes used in solver output."""
     return float(np.sum(np.abs(state) ** 2))
 
 

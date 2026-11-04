@@ -19,7 +19,7 @@ CASES = ("dns-reference", "zero-reference", "zero-dsm", "zero-raw",
 
 
 def initial_state(cutoff, size, seed=2):
-    """Original k_L=2 spectrum, Python random phases, K(0)=1/2."""
+    """Initialize the k_L=2 spectrum with random phases and K(0)=1/2."""
     k = solver.WaveNumber(2*np.pi, size)
     spectrum = k**4 * np.exp(-0.5*k*k)
     spectrum /= spectrum.sum()

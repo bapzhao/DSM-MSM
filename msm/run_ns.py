@@ -1,4 +1,4 @@
-"""Run the original two-dimensional MSM, dealiased reference or unshifted case."""
+"""Run the two-dimensional MSM, dealiased reference, or unshifted calculation."""
 
 
 import argparse
@@ -38,23 +38,19 @@ outputPATH = str(args.output) if args.output is not None else None
 Lx, Ly = 2*np.pi, 2*np.pi
 
 initial_condition="random"
-# initial_condition="shear_layer"
 
 Kmax=args.kmax
 Nx, Ny = 2*Kmax, 2*Kmax
 
-# nu=1e-3
 nu=args.nu
 dealias = 1.5 if args.method == "reference" else 1.0
 stop_sim_time = args.stop
 timestepper = d3.RK222
-# max_timestep = 1e-3
 max_timestep = args.dt
 k0 = 1
 use_formula32_alias_control = args.method == "msm"
 eps_target = 0.0
 formula32_search_n = 257
-# dtype = np.float64
 dtype = np.complex128
 
 # Bases
@@ -388,12 +384,12 @@ if initial_condition == "random":
     # Remove tiny imaginary round-off in physical space
     psi['g'] = np.real(psi['g'])
 
-    u_initial = d3.skew(d3.Gradient(psi)).evaluate()  # 计算速度场 u = -∂ψ/∂y, v = ∂ψ/∂x
+    u_initial = d3.skew(d3.Gradient(psi)).evaluate()  # Velocity: (-psi_y, psi_x).
     u_initial.change_scales(1)
 
     u['g'][0]=u_initial['g'][0]
     u['g'][1]=u_initial['g'][1]
-    target_KE_mean = 1  # 可试 0.1, 0.5, 1.0
+    target_KE_mean = 1
     u.require_grid_space()
 
     KE_local_sum = np.sum(
@@ -416,7 +412,7 @@ if initial_condition == "random":
     )
 
 if initial_condition == "shear_layer":
-    # Initial conditions from Shear_flow/shear_flow.py, adapted to y in [0, Ly].
+    # Initialize a periodic shear layer on y in [0, Ly].
     y_center = y - Ly/2
     u['g'][0] = 1/2 + 1/2 * (
         np.tanh((y_center - 0.5)/0.1)
@@ -424,13 +420,12 @@ if initial_condition == "shear_layer":
     )
     u['g'][1] = 0.0
     u['g'][1] += 0.1 * np.sin(2*np.pi*x/Lx) * np.exp(-(y_center - 0.5)**2/0.01)
-    # u['g'][1] += 0.1 * np.sin(2*np.pi*x/Lx) * np.exp(-(y_center + 0.5)**2/0.01)
 
 logger.info(
     "Applied %s initial condition with Lx=%.3e, Ly=%.3e, Kmax=%i, Nx=%i, Ny=%i"
     % (initial_condition, Lx, Ly, Kmax, Nx, Ny)
 )
-# Check the existing field/operator and eight-sample reconstruction without advancing.
+# Check the field/operator and eight-sample reconstruction without advancing.
 if args.check_only:
     probe = dist.VectorField(coords, name="check_probe", bases=(xbasis, ybasis))
     mx = Nx * 2.0 * np.pi / Lx
@@ -632,11 +627,6 @@ try:
                     'eps_target=% .3e, eps_model=% .3e, '
                     'eps_actual_alpha=% .3e, '
                     'eps_min=% .3e, eps_max=% .3e, target_inside=%i'
-                    # ' eps_actual_minus_target=% .3e, '
-                    # 'X1=% .3e, X2=% .3e, X3=% .3e, X4=% .3e, '
-                    # 'Px=% .3e, Qx=% .3e, Py=% .3e, Qy=% .3e, '
-                    # 'fit_rank=%i, fit_cond=%.3e, fit_linf=%.3e, eps0=% .3e, '
-                    # 'q_x=% .3e, q_y=% .3e, outputPATH=%s'
                     % (
                         solver.iteration,
                         solver.sim_time,

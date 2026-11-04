@@ -1,4 +1,4 @@
-"""Original four-method timing calculation; plotting code is omitted."""
+"""Benchmark the time-step cost of the four pseudospectral methods."""
 from __future__ import annotations
 import os
 for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
@@ -190,7 +190,6 @@ def solve_alpha_zero_or_clip(P: float, Q: float, eps_target: float, n: int) -> f
 
 def step_double_alpha_fft(uk: np.ndarray, k: np.ndarray, nu: float, dt: float, cs: float) -> np.ndarray:
     eps_target = 0
-    # eps_target = smag_eps_target(uk, k, cs, 2.0 * np.pi / uk.size)
 
     P, Q = pq_two_shift_fft(uk, k)
     alpha = solve_alpha_zero_or_clip(P, Q, eps_target, uk.size)
@@ -199,7 +198,6 @@ def step_double_alpha_fft(uk: np.ndarray, k: np.ndarray, nu: float, dt: float, c
 
 def step_direct_triad_pq(uk: np.ndarray, k: np.ndarray, nu: float, dt: float, cs: float) -> np.ndarray:
     eps_target = 0
-    # eps_target = smag_eps_target(uk, k, cs, 2.0 * np.pi / uk.size)
 
     P, Q = direct_triad_pq_loop(uk, k)
     alpha = solve_alpha_zero_or_clip(P, Q, eps_target, uk.size)
