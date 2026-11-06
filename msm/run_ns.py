@@ -1,4 +1,33 @@
-"""Run the two-dimensional MSM, dealiased reference, or unshifted calculation."""
+"""Run the two-dimensional incompressible Navier--Stokes comparison cases.
+
+The domain is the periodic square [0, 2*pi)^2. The msm method controls net
+aliasing power at zero using the diagonal shift alpha_x = alpha_y. The reference
+method uses 3/2 padding; raw uses the unshifted, aliased nonlinear product.
+All three use the same initial-condition prescription and Dedalus RK222 scheme.
+
+Usage (from the repository root, in the nsdedalus environment)
+-----------------------------------------------------------
+    python msm/run_ns.py --method msm --output outputs/msm
+    python msm/run_ns.py --method reference --output outputs/msm_reference
+    python msm/run_ns.py --method raw --output outputs/msm_raw
+    mpiexec -n 4 python msm/run_ns.py --method msm --output outputs/msm_mpi
+
+Use a new output directory. Set OMP_NUM_THREADS=1 and OPENBLAS_NUM_THREADS=1
+before launching. --kmax sets half the grid size in each direction; --dt is
+the maximum CFL-controlled time step. --help lists all options, --dry-run
+prints the configuration, and --check-only tests the initial MSM reconstruction
+without advancing or writing files. Time advancement requires Dedalus 3.0.5.
+
+Output and rate convention
+--------------------------
+Each run writes configuration.json and HDF5 snapshots containing velocity,
+pressure, vorticity, divergence, kinetic-energy density, and selected shifts.
+MPI output may be distributed over process files. Snapshots are saved after
+restoring the original coordinate frame. The raw calculation may become unstable.
+The eps_* diagnostics use signed domain-integrated convective power. To compare
+with positive mean aliasing dissipation in the manuscript, use
+epsilon_alias = -power/(Lx*Ly). The prescribed target in this script is zero.
+"""
 
 
 import argparse
@@ -78,6 +107,7 @@ def local_physical_wavenumbers(field):
     return kx_1d[:, None], ky_1d[None, :]
 
 def apply_spectral_translation_to_velocity(u, alphax, alphay):
+    """Translate both velocity components in place using physical-coordinate shifts."""
     u.require_coeff_space()
     kx_phase, ky_phase = local_physical_wavenumbers(u)
     phase = np.exp(1j * (kx_phase * alphax + ky_phase * alphay))
@@ -90,9 +120,11 @@ def velocity_grid_arrays(u):
     return np.array(u['g'][0]), np.array(u['g'][1])
 
 def kinetic_energy_mean(ux, uy):
+    """Return mean kinetic energy over the supplied velocity-component arrays."""
     return np.mean(0.5 * (np.abs(ux)**2 + np.abs(uy)**2))
 
 def isotropic_energy_spectrum(ux, uy):
+    """Bin kinetic energy into nearest-integer radial Fourier shells."""
     ux = np.real(ux)
     uy = np.real(uy)
     nx, ny = ux.shape
@@ -121,19 +153,23 @@ def evaluate_scalar(expr):
     return float(np.real(np.squeeze(data)))
 
 def kinetic_energy_integral(u):
+    """Build the Dedalus expression for domain-integrated kinetic energy."""
     return d3.integ(0.5*(u@u))
 
 def copy_velocity(dst, src):
+    """Copy local Fourier velocity coefficients into an existing probe field."""
     src.require_coeff_space()
     dst.require_coeff_space()
     dst['c'][:] = src['c']
 
 def epsilon_at_alpha(u_src, u_tmp, alphax, alphay):
+    """Evaluate shifted integrated convective power without changing u_src."""
     copy_velocity(u_tmp, u_src)
     apply_spectral_translation_to_velocity(u_tmp, alphax, alphay)
     return evaluate_scalar(total_convective_energy_rate(u_tmp))
 
 def epsilon_at_alphax(u_src, u_tmp, alphax, alphay=0.0):
+    """Evaluate the same signed power with an optional fixed y-direction shift."""
     return epsilon_at_alpha(u_src, u_tmp, alphax, alphay)
 
 def formula32_basis(alphax, alphay, Mx, My):
@@ -159,6 +195,7 @@ def formula32_basis(alphax, alphay, Mx, My):
     ], dtype=np.float64)
 
 def formula32_epsilon(coeffs, alphax, alphay, Mx, My):
+    """Evaluate the eight-term model using signed integrated-power coefficients."""
     X1, X2, X3, X4, Px, Qx, Py, Qy = coeffs
     tx = Mx * alphax
     ty = My * alphay
@@ -179,8 +216,7 @@ def formula32_epsilon(coeffs, alphax, alphay, Mx, My):
 
 def compute_formula32_coefficients(u_src, u_tmp, Mx, My):
     """
-    Reconstruct the formula-(32) eight-coefficient model from the minimum
-    eight full-rank shift samples.
+    Reconstruct the eight-coefficient power model from eight full-rank samples.
     """
     phase_pairs = (
         (0.0, 0.0),
@@ -232,7 +268,7 @@ def solve_alphaxy_from_formula32(
 ):
     """
     Impose the isotropy-consistent diagonal closure alpha_x = alpha_y = alpha.
-    The formula-(32) model then becomes a one-parameter function
+    The reconstructed model then becomes a one-parameter function
     epsilon_diag(alpha), and alpha is selected by scanning one diagonal phase
     period for epsilon_diag(alpha) = eps_target.
     """
@@ -522,6 +558,7 @@ try:
                 f"time={solver.sim_time}"
             )
 
+        # Reconstruct and select the zero-power shift from the current velocity.
         if use_formula32_alias_control:
             coeffs, shift_info = compute_formula32_coefficients(
                 u,
@@ -574,6 +611,7 @@ try:
                 "best_error": solve_info["best_error"],
             }
 
+        # Advance in the shifted frame, then restore coordinates before output.
         try:
             solver.step(timestep)
         finally:
