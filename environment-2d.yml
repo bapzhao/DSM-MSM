@@ -1,3 +1,5 @@
+# Dedalus 3.0.5 environment for msm/run_ns.py, including MPI and HDF5 support.
+# Create with: conda env create -f environment-2d.yml
 name: nsdedalus
 channels:
   - conda-forge
