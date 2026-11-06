@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Yicong Zhao
 """Run the two-dimensional incompressible Navier--Stokes comparison cases.
 
 The domain is the periodic square [0, 2*pi)^2. The msm method controls net
