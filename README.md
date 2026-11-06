@@ -1,9 +1,30 @@
-# DSM-MSM_YicongZHAO
+# DSM-MSM
 
 Calculation code for the Double-Shifting Method (DSM, one-dimensional Burgers)
 and Multiple-Shifting Method (MSM, two-dimensional incompressible Navier--Stokes).
 
+Repository: https://github.com/bapzhao/DSM-MSM
+
+## Calculation files
+
+| File | Purpose |
+| --- | --- |
+| `dsm/run_burgers.py` | Run the one-dimensional DSM, DNS, and LES comparisons. |
+| `dsm/control.py` | Evaluate aliasing power and select the DSM phase shift. |
+| `dsm/solver.py` | Supply Fourier wavenumbers and Burgers time-stepping kernels. |
+| `msm/run_ns.py` | Run the two-dimensional zero-target MSM and reference cases. |
+
+Run commands below from the repository root. Each Python file starts with
+usage notes; the two calculation entries also accept `--help`.
+
 ## Installation
+
+Download the calculation files:
+
+```bash
+git clone https://github.com/bapzhao/DSM-MSM.git
+cd DSM-MSM
+```
 
 Create the calculation environments from conda-forge:
 
