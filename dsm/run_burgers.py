@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Yicong Zhao
 """Run the one-dimensional Burgers calculations for DSM and its comparisons.
 
 Cases

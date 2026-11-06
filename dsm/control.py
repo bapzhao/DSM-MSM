@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Yicong Zhao
 """Power diagnostics and phase selection for the one-dimensional DSM driver.
 
 This module is imported by dsm/run_burgers.py; it is not a simulation entry.

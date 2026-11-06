@@ -79,4 +79,13 @@ Default parameters are set in the calculation entries; use `--help` for options.
 Output directories must not already exist. The uncontrolled cases may become
 unstable and stop. No simulation results or plotting programs are included.
 
-No software license has been assigned.
+## License
+
+The standalone DSM code in `dsm/` is released under the MIT License in
+[`LICENSE`](LICENSE). This is also the default license for the project files
+outside `msm/`.
+
+The Dedalus-based MSM code in `msm/` is released under the GNU General Public
+License v3.0 only (`GPL-3.0-only`); see [`msm/LICENSE`](msm/LICENSE).
+
+Third-party dependencies, including Dedalus, retain their own licenses.

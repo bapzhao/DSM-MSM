@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Yicong Zhao
 """Fourier pseudospectral kernels used by the one-dimensional Burgers driver.
 
 Import this module through dsm/run_burgers.py; there is no standalone run or
