@@ -1,5 +1,34 @@
 #!/usr/bin/env python3
-"""Portable calculation entry for the manuscript's one-dimensional cases."""
+"""Run the one-dimensional Burgers calculations for DSM and its comparisons.
+
+Cases
+-----
+dns-reference: Generate the dealiased DNS restart and filtered-DNS target history.
+zero-reference / zero-dsm / zero-raw: Compare zero-target DSM with dealiased and
+    uncontrolled calculations from the same random-phase initial condition.
+dsm-smag / dsm-filtered: Run DSM with a Smagorinsky or filtered-DNS target.
+smag / coarse: Run the explicit Smagorinsky or dealiased coarse-grid comparison.
+
+Usage (from the repository root, in the 1dburgers environment)
+----------------------------------------------------------
+    python dsm/run_burgers.py --case dns-reference --output outputs/reference
+    python dsm/run_burgers.py --case zero-dsm --output outputs/zero_dsm
+    python dsm/run_burgers.py --help
+
+For LES, first generate the reference, then supply its state_t0.300000.npz
+with --restart. The dsm-filtered case also needs its sgs_target.csv via --target.
+Complete LES commands are listed in README.md. Use a new output directory.
+
+Conventions and output
+----------------------
+The domain is [0, 2*pi). --cutoff retains |k| < cutoff; it is not the grid size.
+The grid has 2*cutoff points for aliased cases and 3*cutoff for padded cases.
+Fourier coefficients use fft(u)/M, and K = 0.5*sum(abs(u_hat)**2).
+Each run writes configuration.json, history.csv, and selected state_t*.npz
+snapshots. The DNS reference also writes filtered_history.csv and sgs_target.csv.
+Positive epsilon_target and epsilon_applied in history.csv mean energy removal.
+Uncontrolled calculations can become unstable and leave partial output.
+"""
 from __future__ import annotations
 
 import argparse
@@ -33,6 +62,7 @@ def initial_state(cutoff, size, seed=2):
 
 
 def project(state, cutoff, size):
+    """Copy the retained positive and negative modes onto a new Fourier grid."""
     if cutoff > len(state)//2:
         raise ValueError("Cannot project to more modes than the source contains.")
     out = np.zeros(size, complex)
@@ -42,6 +72,7 @@ def project(state, cutoff, size):
 
 
 def convection(state, k, cutoff):
+    """Return the quadratic convective RHS with |k| >= cutoff removed."""
     physical = np.fft.ifft(state).real*len(state)
     rhs = -0.5j*k*np.fft.fft(physical**2)/len(state)
     rhs[np.abs(k) >= cutoff] = 0
@@ -49,6 +80,7 @@ def convection(state, k, cutoff):
 
 
 def load_restart(path, cutoff, size, expected_time):
+    """Load u_hat and time from an NPZ restart and project to the requested grid."""
     with np.load(path, allow_pickle=False) as data:
         state = data["u_hat"]
         time = float(data["time"])
@@ -60,6 +92,7 @@ def load_restart(path, cutoff, size, expected_time):
 
 
 def load_target(path, start, stop):
+    """Read increasing t,epsilon_sgs columns covering the continuation interval."""
     data = np.atleast_1d(np.genfromtxt(path, delimiter=",", names=True))
     if not {"t", "epsilon_sgs"}.issubset(data.dtype.names or ()):
         raise ValueError("Target CSV must contain t,epsilon_sgs columns.")
@@ -72,11 +105,13 @@ def load_target(path, start, stop):
 
 
 def save_state(directory, state, time, cutoff):
+    """Save normalized Fourier coefficients, time, and cutoff for a restart."""
     np.savez_compressed(directory/f"state_t{time:.6f}.npz",
                         u_hat=state, time=time, cutoff=cutoff)
 
 
 def parse_args():
+    """Read case options, apply defaults, and validate inputs before writing data."""
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--case", choices=CASES, required=True)
     p.add_argument("--cutoff", type=int)
@@ -121,12 +156,15 @@ def parse_args():
 
 
 def run(a):
+    """Advance the selected case and write its configuration, history, and states."""
+    # Padding changes the sampling grid, not the retained Fourier-mode cutoff.
     padded = a.case in ("dns-reference", "zero-reference", "smag", "coarse")
     size = (3 if padded else 2)*a.cutoff
     k = solver.WaveNumber(2*np.pi, size)
     mask = np.abs(k) >= a.cutoff
     state = (initial_state(a.cutoff, size, a.seed) if a.restart is None else
              load_restart(a.restart, a.cutoff, size, a.start))
+    # Filtered-DNS targets are read from the reference; Smagorinsky targets are local.
     target = load_target(a.target, a.start, a.stop) if a.case == "dsm-filtered" else None
     a.output.mkdir(parents=True, exist_ok=False)
     config = {key: str(value) if isinstance(value, Path) else value
@@ -159,12 +197,14 @@ def run(a):
             desired = amplitude = applied = alpha = 0.0
             saturated = False
             shifted = state
+            # Match the instantaneous power before the convective update.
             if a.case in ("zero-dsm", "dsm-smag", "dsm-filtered"):
                 if a.case == "dsm-smag":
                     desired = -control.smagorinsky_power_target(state, k, a.cs)
                 elif a.case == "dsm-filtered":
                     desired = float(np.interp(time, *target))
                 p, q, amplitude = control.phase_model(state, k)
+                # The controller uses signed power; positive dissipation is -power.
                 alpha, _, saturated = control.solve_alpha(p, q, -desired, size, previous)
                 previous = alpha
                 shifted = control.translate(state, k, alpha)
@@ -188,6 +228,7 @@ def run(a):
                     state, k, a.nu, a.dt, mask, Cs=a.cs, Delta=np.pi/a.cutoff)
             else:
                 state = solver.advance_step(shifted, k, a.nu, a.dt, mask)
+    # Infer the filtered-DNS target from its discrete energy balance.
     if filtered_history:
         arr = np.asarray(filtered_history)
         np.savetxt(a.output/"filtered_history.csv", arr, delimiter=",",
