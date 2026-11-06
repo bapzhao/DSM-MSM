@@ -1,3 +1,5 @@
+# NumPy environment for dsm/run_burgers.py and its helper modules.
+# Create with: conda env create -f environment-1d.yml
 name: 1dburgers
 channels:
   - conda-forge
