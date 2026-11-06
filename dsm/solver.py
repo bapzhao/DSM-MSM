@@ -1,4 +1,19 @@
-"""Fourier pseudospectral time-stepping kernels for the Burgers equation."""
+"""Fourier pseudospectral kernels used by the one-dimensional Burgers driver.
+
+Import this module through dsm/run_burgers.py; there is no standalone run or
+file output. NumPy is the only external dependency. The driver supplies the
+initial condition, phase shifts, retained-mode mask, and output handling.
+
+Arrays contain normalized coefficients uk = fft(u)/M in NumPy FFT ordering;
+the real velocity is ifft(uk).real*M. spe_k contains physical wavenumbers.
+A True entry in dealiasing_mask removes that coefficient. The driver chooses
+the sampling grid and mask for aliased or 3/2-padded calculations.
+
+advance_step applies explicit convection followed by molecular viscosity.
+advance_step_les_smag_non_average inserts an explicit Smagorinsky update between
+those operations. Each update uses the full dt. The published freely decaying
+cases use forcek=None and do not activate the optional forcing branches.
+"""
 import numpy as np
 from numpy.fft import fft, ifft
 from numpy import cos, sin
@@ -7,13 +22,11 @@ PI = np.pi
 
 
 def WaveNumber(X,nb_X):
-    '''
-    input:
-        X: domain length
-        nb_X: number of domain
-    output:
-        spe_k: wave number array
-    '''
+    """Return physical wavenumbers for domain length X and nb_X grid points.
+
+    The returned array follows NumPy FFT ordering, with negative wavenumbers
+    in its second half. nb_X counts grid points, not retained positive modes.
+    """
     
     #spectral space grid
     spe_i=np.zeros(nb_X)
@@ -31,6 +44,13 @@ def WaveNumber(X,nb_X):
 
 
 def advance_step(uk,spe_k,NU,dt,dealiasing_mask=None,forcek=None):
+    """Advance convection and molecular viscosity by one explicit split step.
+
+    uk is the normalized Fourier velocity, spe_k its wavenumbers, NU the
+    kinematic viscosity, and dt the time step. Supply a Boolean mask whose
+    True entries discard unresolved coefficients of the nonlinear product.
+    The returned array is the updated Fourier velocity.
+    """
     u_temp=np.zeros_like(uk)
     u2_temp=np.zeros_like(uk)
     energy = np.sum((np.abs(uk)**2))
@@ -152,6 +172,7 @@ def advance_step_les_smag_non_average(uk, spe_k, NU, dt,
 
 
 def dealiasing(uk,dealiasing_mask=None):
+    """Zero masked coefficients in place and return uk; a mask is required."""
     if dealiasing_mask is not None:
         uk[dealiasing_mask]=0
     else:
